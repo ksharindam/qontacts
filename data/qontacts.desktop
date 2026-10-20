@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Qontacts
+GenericName=Contacts Manager
+Comment=Contacts Manager
+Exec=qontacts
+Icon=qontacts
+Categories=Utility;
+Terminal=false
+StartupNotify=false

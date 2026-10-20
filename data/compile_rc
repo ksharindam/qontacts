@@ -1,0 +1,20 @@
+#!/bin/bash
+
+echo "<RCC>" > resources.qrc
+echo "  <qresource>" >> resources.qrc
+
+for f in icons/*; do
+    echo "    <file>${f}</file>" >> resources.qrc
+done
+
+echo "  </qresource>" >> resources.qrc
+echo "</RCC>" >> resources.qrc
+
+pyrcc5 -o ../qontacts/resources_rc.py resources.qrc
+
+if [ $? -eq 0 ]; then
+    echo "Compiled Resources saved as ../qontacts/resources_rc.py"
+else
+    echo "Failed to compile resources"
+fi
+
