@@ -6,6 +6,8 @@ Simple Contacts Manager application (PyQt based).
 With this app you can -  
 * Save phone numbers and email.  
 * Save contact photos.  
+* Import vCard v2.1 and v3.0.  
+* Export vCard v3.0.  
 
 ### Installation
 

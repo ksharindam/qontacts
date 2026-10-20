@@ -5,6 +5,8 @@
     <file>icons/delete.png</file>
     <file>icons/edit.png</file>
     <file>icons/email.png</file>
+    <file>icons/file-export.png</file>
+    <file>icons/file-import.png</file>
     <file>icons/help-about.png</file>
     <file>icons/jio.png</file>
     <file>icons/menu.png</file>

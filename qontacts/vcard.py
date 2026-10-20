@@ -115,8 +115,7 @@ class vCard:
 
 
     def parse_property(self, prop):
-        """ splits TEL;TYPE=cell,pref:123456 into
-         ["TEL", {"TYPE":["cell","pref"]}, "123456"] """
+        """ parse "TEL;TYPE=cell,pref" into {"TYPE": ["cell","pref"]} """
         prop_parts = prop.split(";")# property_name;param1;param2...
         params = {}
         for param in prop_parts[1:]:# eg. TYPE=cell,home,pref

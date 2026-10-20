@@ -4,6 +4,7 @@
 # Copyright (C) 2026 Arindam Chaudhuri <arindamsoft94@gmail.com>
 import os, sys
 import platform
+from datetime import datetime
  # enable python 2 like import
 sys.path.append(os.path.dirname(__file__))
 
@@ -52,6 +53,8 @@ class Window(QMainWindow):
         self.menuBtn.setToolTip("Main Menu")
         self.menuBtn.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self.menuBtn)
+        menu.addAction(QIcon(":/icons/file-import.png"), "Import Contacts", self.importContacts)
+        menu.addAction(QIcon(":/icons/file-export.png"), "Export Contacts", self.exportContacts)
         menu.addAction(QIcon(":/icons/help-about.png"), "About", self.showAbout)
         self.menuBtn.setMenu(menu)
         # add contact button
@@ -126,7 +129,8 @@ class Window(QMainWindow):
 
         self.statusbar.showMessage("Showing %d contacts"%len(contact_indices))
 
-    def contact_widgets(self):
+
+    def contactWidgets(self):
         items = [self.contactsLayout.itemAt(i).widget() for i in range(self.contactsLayout.count())]
         return list(filter(lambda x : isinstance(x, ContactWidget), items))
 
@@ -141,7 +145,7 @@ class Window(QMainWindow):
     def addNewContact(self):
         dlg = ContactEditDialog(self)
         if dlg.exec()==dlg.Accepted:
-            contact = dlg.get_contact()
+            contact = dlg.getContact()
             writer = vCard()
             writer.write_contact(self.contacts_filename, contact)
             App.contacts.append(contact)
@@ -152,15 +156,15 @@ class Window(QMainWindow):
         contact = App.contacts[contact_widget.index]
         dlg = ContactEditDialog(self, contact)
         if dlg.exec()==QDialog.Accepted:
-            App.contacts[contact_widget.index] = dlg.get_contact()
+            App.contacts[contact_widget.index] = dlg.getContact()
             contact_widget.update()
-            self.save_all_contacts()
+            self.saveAllContacts()
 
     def onDeleteRequested(self, contact_widget):
         self.selected_widgets = [contact_widget]
-        self.delete_selected()
+        self.deleteSelected()
 
-    def delete_selected(self):
+    def deleteSelected(self):
         deleted_indices = []
         for contact_widget in self.selected_widgets:
             deleted_indices.append(contact_widget.index)
@@ -173,7 +177,7 @@ class Window(QMainWindow):
             App.contacts.pop(index)
 
         # update indices after deletion
-        contact_widgets = self.contact_widgets()
+        contact_widgets = self.contactWidgets()
         contact_widgets.sort(key=lambda x:x.index, reverse=True)
         offset = len(deleted_indices)
         new_index = {}
@@ -184,9 +188,10 @@ class Window(QMainWindow):
             if not deleted_indices:
                 break
             widget.index -= offset
-        self.save_all_contacts()
+        self.saveAllContacts()
+        self.statusbar.showMessage("Showing %d contacts"%len(contact_widgets))
 
-    def save_all_contacts(self):
+    def saveAllContacts(self):
         writer = vCard()
         os.remove(self.contacts_filename)
         for contact in App.contacts:
@@ -207,6 +212,39 @@ class Window(QMainWindow):
             return
         contacts.sort(key=lambda x : x[0].name.lower().find(text))
         self.showContacts([x[1] for x in contacts])
+
+
+    def importContacts(self):
+        filename, filtr = QFileDialog.getOpenFileName(self, "Import Contacts",
+                        "", "Business Card (*.vcf);;")
+        if not filename:
+            return
+        vcard = vCard()
+        contacts = vcard.read_file(filename)
+        if not contacts:
+            return
+        for contact in contacts:
+            vcard.write_contact(self.contacts_filename, contact)
+        App.contacts += contacts
+        App.contacts.sort(key=lambda c: c.name)
+        self.showContacts()
+        self.statusbar.showMessage(f"Succesfully imported {len(contacts)} contacts", 4000)
+
+
+    def exportContacts(self):
+        date = datetime.now().strftime("%Y%m%d")
+        filename, filtr = QFileDialog.getSaveFileName(self, "Export Contacts",
+                        f"Contacts_{date}.vcf", "Business Card (*.vcf);;")
+        if not filename:
+            return
+        writer = vCard()
+        if os.path.exists(filename):# avoid appending to previous contacts
+            os.remove(filename)
+        for contact in App.contacts:
+            writer.write_contact(filename, contact)
+        self.statusbar.showMessage(f"Successfully exported {len(App.contacts)} contacts", 4000)
+
+
 
     def showAbout(self):
         lines = ("<h1>Qontacts</h1>",
@@ -337,7 +375,7 @@ class ContactEditDialog(QDialog):
         self.nameEdit.setFocus()
         self.photo = None
         if contact:
-            self.set_contact(contact)
+            self.setContact(contact)
             self.setWindowTitle("Edit Contact")
         if not self.data_widgets:
             self.addDataField()
@@ -367,7 +405,7 @@ class ContactEditDialog(QDialog):
         btn = self.sender().parent() # menu is sender of this signal
         btn.setDefaultAction(action)
 
-    def set_contact(self, contact):
+    def setContact(self, contact):
         self.nameEdit.setText(contact.name)
         phones = [[v,k] for k,v in contact.phones.items()]
         emails = [["Email",email] for email in contact.emails]
@@ -387,7 +425,7 @@ class ContactEditDialog(QDialog):
             self.photoBtn.setIcon(QIcon(":/icons/qontacts.png"))
 
 
-    def get_contact(self):
+    def getContact(self):
         contact = Contact()
         contact.name = self.nameEdit.text()
         for typeBtn, valueEdit in self.data_widgets:
@@ -433,7 +471,7 @@ class ContactEditDialog(QDialog):
                     f.write(self.photo)
 
     def accept(self):
-        contact = self.get_contact()
+        contact = self.getContact()
         if not contact.name or (not contact.phones and not contact.emails):
             return
         QDialog.accept(self)
