@@ -410,7 +410,8 @@ class ContactEditDialog(QDialog):
         image = QImage(filename)
         if image.isNull():
             return
-        image = image.scaled(128,128, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        if image.width()>128 or image.height()>128:
+            image = image.scaled(128,128, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
         buff = QBuffer()
         buff.open(QIODevice.WriteOnly)
         image.save(buff, "JPEG")

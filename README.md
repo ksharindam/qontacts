@@ -26,5 +26,5 @@ To uninstall run..
 
 ### Screenshots
 
-![Screenshot1](data/screenshots/Screenshot1.jpg)  
+![Screenshot1](data/screenshots/Screenshot1.png)  
 
