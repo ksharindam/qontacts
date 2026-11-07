@@ -14,8 +14,8 @@ With this app you can -
 If you want to install using pip, first install these dependencies...  
 
 * python3  
-* python3-pyqt5  
-* pytqt5-dev-tools (to compile resources)  
+* python3-pyqt6  
+* pytqt6-dev-tools (to compile resources)  
 
 Then inside data/ dir, exec compile_rc. The resource file will be generated.  
 

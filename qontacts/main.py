@@ -5,16 +5,29 @@
 import os, sys
 import platform
 from datetime import datetime
+
+try:
+    from PyQt6.QtCore import qVersion, Qt, QSize, QBuffer, QIODevice, pyqtSignal, QStandardPaths
+    from PyQt6.QtGui import QIcon, QImage, QPixmap, QPainter
+
+    from PyQt6.QtWidgets import (QApplication, QStyleFactory, QMainWindow, QStatusBar,
+        QGridLayout, QToolButton, QScrollArea, QHBoxLayout, QSizePolicy, QStyleOption,
+        QStyle, QLineEdit, QMenu, QFileDialog, QMessageBox,
+        QDialog, QDialogButtonBox, QWidget, QLabel, QVBoxLayout,
+    )
+except:
+    from PyQt5.QtCore import qVersion, Qt, QSize, QBuffer, QIODevice, pyqtSignal, QStandardPaths
+    from PyQt5.QtGui import QIcon, QImage, QPixmap, QPainter
+
+    from PyQt5.QtWidgets import (QApplication, QStyleFactory, QMainWindow, QStatusBar,
+        QGridLayout, QToolButton, QScrollArea, QHBoxLayout, QSizePolicy, QStyleOption,
+        QStyle, QLineEdit, QMenu, QFileDialog, QMessageBox,
+        QDialog, QDialogButtonBox, QWidget, QLabel, QVBoxLayout,
+    )
+
  # enable python 2 like import
 sys.path.append(os.path.dirname(__file__))
 
-from PyQt5.QtCore import qVersion, Qt, QSize, QBuffer, QIODevice, pyqtSignal, QStandardPaths
-from PyQt5.QtGui import QIcon, QImage, QPixmap, QPainter
-
-from PyQt5.QtWidgets import (QApplication, QStyleFactory, QMainWindow, QStatusBar, QDialog, QDialogButtonBox, QWidget, QLabel, QVBoxLayout,
-    QGridLayout, QToolButton, QScrollArea, QHBoxLayout, QSizePolicy, QStyleOption,
-    QStyle, QLineEdit, QMenu, QFileDialog, QMessageBox
-)
 from __init__ import __version__, COPYRIGHT_YEAR, AUTHOR_NAME, AUTHOR_EMAIL
 from vcard import vCard, Contact
 import resources_rc
@@ -28,7 +41,7 @@ class App:
 
 # this function must be called after calling QApplication.setApplicationName()
 def updatePaths():
-    App.DATA_DIR = QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
+    App.DATA_DIR = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
 
 
 class Window(QMainWindow):
@@ -51,7 +64,7 @@ class Window(QMainWindow):
         self.menuBtn.setIcon(QIcon(":/icons/menu.png"))
         self.menuBtn.setIconSize(QSize(22,22))
         self.menuBtn.setToolTip("Main Menu")
-        self.menuBtn.setPopupMode(QToolButton.InstantPopup)
+        self.menuBtn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         menu = QMenu(self.menuBtn)
         menu.addAction(QIcon(":/icons/file-import.png"), "Import Contacts", self.importContacts)
         menu.addAction(QIcon(":/icons/file-export.png"), "Export Contacts", self.exportContacts)
@@ -104,7 +117,8 @@ class Window(QMainWindow):
         self.contactsContainer = None
         self.selected_widgets = []
         icon = QPixmap(":/icons/qontacts.png")
-        App.profile_pixmap = icon.scaled(64,64, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        App.profile_pixmap = icon.scaled(64,64, Qt.AspectRatioMode.IgnoreAspectRatio,
+                            Qt.TransformationMode.SmoothTransformation)
         # display contacts
         App.contacts.sort(key=lambda c: c.name)
         self.showContacts()
@@ -144,7 +158,7 @@ class Window(QMainWindow):
 
     def addNewContact(self):
         dlg = ContactEditDialog(self)
-        if dlg.exec()==dlg.Accepted:
+        if dlg.exec()==QDialog.DialogCode.Accepted:
             contact = dlg.getContact()
             writer = vCard()
             writer.write_contact(self.contacts_filename, contact)
@@ -155,7 +169,7 @@ class Window(QMainWindow):
     def onEditRequested(self, contact_widget):
         contact = App.contacts[contact_widget.index]
         dlg = ContactEditDialog(self, contact)
-        if dlg.exec()==QDialog.Accepted:
+        if dlg.exec()==QDialog.DialogCode.Accepted:
             App.contacts[contact_widget.index] = dlg.getContact()
             contact_widget.update()
             self.saveAllContacts()
@@ -264,11 +278,11 @@ class ContactWidget(QWidget):
         self.index = contact_index
         QWidget.__init__(self, parent)
         self.setStyleSheet("ContactWidget{background-color: white;}")
-        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         # add widgets
         layout = QGridLayout(self)
         self.photo = QLabel(self)
-        self.photo.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.photo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.name = QLabel(self)
         self.name.setStyleSheet("QLabel { color: #0000ff;}")
         self.data_widget = QWidget(self)
@@ -306,16 +320,17 @@ class ContactWidget(QWidget):
         emails = [["Email",email] for email in contact.emails]
         for i, row in enumerate(phones+emails):
             icon_label = QLabel(self.data_widget)
-            icon_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            icon_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             icon_label.setPixmap(QPixmap(":/icons/%s.png"%row[0].lower()))
             val_label = QLabel(row[1], self.data_widget)
-            val_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            val_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             self.data_layout.addWidget(icon_label, i,0,1,1)
             self.data_layout.addWidget(val_label, i,1,1,1)
         # set photo
         if contact.photo:
             photo = QImage.fromData(contact.photo)
-            photo = photo.scaled(64,64, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            photo = photo.scaled(64,64, Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation)
             self.photo.setPixmap(QPixmap.fromImage(photo))
         else:
             self.photo.setPixmap(App.profile_pixmap)
@@ -325,7 +340,7 @@ class ContactWidget(QWidget):
         o = QStyleOption()
         o.initFrom(self)
         p = QPainter(self)
-        self.style().drawPrimitive(QStyle.PE_Widget, o, p, self)
+        self.style().drawPrimitive(QStyle.PrimitiveElement.PE_Widget, o, p, self)
 
     def edit(self):
         self.editRequested.emit(self)
@@ -344,7 +359,7 @@ class ContactEditDialog(QDialog):
         self.photoBtn = QToolButton(self)
         self.photoBtn.setIconSize(QSize(128,128))
         self.photoBtn.setIcon(QIcon(":/icons/qontacts.png"))
-        self.photoBtn.setPopupMode(QToolButton.InstantPopup)
+        self.photoBtn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         menu = QMenu(self.photoBtn)
         menu.addAction("Change Photo", self.changePhoto)
         menu.addAction("Remove Photo", self.removePhoto)
@@ -360,7 +375,8 @@ class ContactEditDialog(QDialog):
         self.addFieldBtn.setIcon(QIcon(":/icons/add.png"))
         self.addFieldBtn.setToolTip("Add Another Field")
         self.data_layout.addWidget(self.addFieldBtn, 0,2,1,1)
-        self.btnBox = QDialogButtonBox(QDialogButtonBox.Save|QDialogButtonBox.Cancel, Qt.Horizontal, self)
+        self.btnBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Save |
+                QDialogButtonBox.StandardButton.Cancel, Qt.Orientation.Horizontal, self)
 
         self.gridLayout = QGridLayout(self)
         self.gridLayout.addWidget(self.photoBtn, 0,0,2,1)
@@ -384,7 +400,7 @@ class ContactEditDialog(QDialog):
     def addDataField(self):
         """ add another data field """
         typeBtn = QToolButton(self)
-        typeBtn.setPopupMode(QToolButton.InstantPopup)
+        typeBtn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         menu = QMenu(typeBtn)
         for title in Contact.phone_types:
             action = menu.addAction(QIcon(":/icons/%s.png"%title.lower()), title)
@@ -419,7 +435,8 @@ class ContactEditDialog(QDialog):
         self.photo = contact.photo
         if self.photo:
             image = QImage.fromData(self.photo)
-            image = image.scaled(128,128, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+            image = image.scaled(128,128, Qt.AspectRatioMode.IgnoreAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation)
             self.photoBtn.setIcon(QIcon(QPixmap.fromImage(image)))
         else:
             self.photoBtn.setIcon(QIcon(":/icons/qontacts.png"))
@@ -449,7 +466,8 @@ class ContactEditDialog(QDialog):
         if image.isNull():
             return
         if image.width()>128 or image.height()>128:
-            image = image.scaled(128,128, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+            image = image.scaled(128,128, Qt.AspectRatioMode.IgnoreAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation)
         buff = QBuffer()
         buff.open(QIODevice.WriteOnly)
         image.save(buff, "JPEG")

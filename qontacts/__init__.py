@@ -4,7 +4,7 @@ Name = Qontacts
 Executable Command = qontacts
 Package Name = qontacts
 Python Module Name = qontacts
-Debian Dependency = python3-pyqt5
+Debian Dependency = python3-pyqt6
 
 Description = Simple Contacts Manager application
 
@@ -28,7 +28,7 @@ Description = Simple Contacts Manager application
 
 
 
-__version__ = '0.1'
+__version__ = '0.2'
 COPYRIGHT_YEAR = "2026"
 AUTHOR_NAME = "Arindam Chaudhuri"
 AUTHOR_EMAIL = "arindamsoft94@gmail.com"
