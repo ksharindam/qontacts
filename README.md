@@ -15,12 +15,12 @@ If you want to install using pip, first install these dependencies...
 
 * python3  
 * python3-pyqt6  
-* pytqt6-dev-tools (to compile resources)  
+* pytqt6-dev-tools (to compile ui files)  
 
 Then inside data/ dir, exec compile_rc. The resource file will be generated.  
 
 Then inside project root directory, run following command..  
-`$ sudo pip3 install --no-build-isolation .`  
+`$ sudo pip3 install .`  
 
 To uninstall run..  
 `$ sudo pip3 uninstall qontacts`    
